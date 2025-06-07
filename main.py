@@ -1,7 +1,9 @@
 import argparse
 import sys
 import os
+import shlex
 from scan_hosts import scan_hosts
+from arp_spoofing import arp_spoof
 
 
 def print_title():
@@ -36,9 +38,28 @@ def print_commands():
 def handle_command(cmd):
     cmd = cmd.strip().lower()
 
-    if cmd == "start":
-        print("[*] Starting spoofing in default mode...")
-        # Call your ARP/DNS spoofing function here
+    if cmd.startswith("start"):
+        # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
+        args = shlex.split(cmd)
+        ip = mac = ipToSpoof = None
+        for i, arg in enumerate(args):
+            if arg == "-ip" and i + 1 < len(args):
+                ip = args[i + 1]
+            elif arg == "-mac" and i + 1 < len(args):
+                mac = args[i + 1]
+            elif arg == "-iptospoof" and i + 1 < len(args):
+                ipToSpoof = args[i + 1]
+        if not ip or not mac or not ipToSpoof:
+            print("[!] Usage: start -ip <target_ip> -mac <target_mac> -iptospoof <spoofed_ip>")
+            return
+        print(f"[*] Spoofing {ip} (MAC: {mac}) as {ipToSpoof} ... Press Ctrl+C to stop.")
+        import time
+        try:
+            while True:
+                arp_spoof(ip, ipToSpoof, mac)
+                time.sleep(2)
+        except KeyboardInterrupt:
+            print("\n[!] Stopped spoofing.")
     elif cmd == "scan":
         scan_hosts() # Scan available hosts
     elif cmd == "silent":
