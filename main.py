@@ -10,14 +10,14 @@ def print_title():
     os.system('cls' if os.name == 'nt' else 'clear') # clears the console when starting
 
     title = ("""
-        ╔══════════════════════════════════════════╗
-        ║                  Group 5                 ║
-        ║      Default Project - Python + Scapy    ║
-        ║       ARP + DNS Spoofing + SSLStrip      ║
-        ╚══════════════════════════════════════════╝
+        
+                          Group 5                 
+              Default Project - Python + Scapy    
+               ARP + DNS Spoofing + SSLStrip      
+        
             """)
 
-    print(f"\033[92m{title}\033[0m")  # Green title
+    print(title)  # Green title
     
 def print_commands():
 
@@ -32,11 +32,12 @@ def print_commands():
         exit          - Quit the tool
             """
 
-    print(f"\033[94m{commands}\033[0m")  # Blue commands
+    print(commands)  # Blue commands
 
 
 def handle_command(cmd):
     cmd = cmd.strip().lower()
+    print(cmd)
 
     if cmd.startswith("start"):
         # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
@@ -52,7 +53,7 @@ def handle_command(cmd):
         if not ip or not mac or not ipToSpoof:
             print("[!] Usage: start -ip <target_ip> -mac <target_mac> -iptospoof <spoofed_ip>")
             return
-        print(f"[*] Spoofing {ip} (MAC: {mac}) as {ipToSpoof} ... Press Ctrl+C to stop.")
+        print("[*] Spoofing {ip} (MAC: {mac}) as {ipToSpoof} ... Press Ctrl+C to stop.")
         import time
         try:
             while True:
@@ -84,7 +85,7 @@ def main():
     print_commands()
     while True:
         try:
-            cmd = input(">> ")
+            cmd = raw_input(">> ")
             handle_command(cmd)
         except KeyboardInterrupt:
             print("\n[!] Interrupted. Type 'stop' to clean up or 'exit' to quit.")
