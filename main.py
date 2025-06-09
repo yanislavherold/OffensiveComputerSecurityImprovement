@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 import shlex
-from scan_hosts import scan_hosts
+from scan_hosts import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof
 
 
@@ -24,7 +24,8 @@ def print_commands():
     commands = """
         Available Commands:
         start         - Start the spoofing process in default mode
-        scan          - Scan for available hosts
+        scanif        - Scan for available interfaces
+        scan          - Scan for available hosts using -face interface
         silent        - Run in silent mode (minimal network disturbance)
         aggressive    - Run in "all out" mode (maximum disruption/logging)
         stop          - Stop all spoofing and restore network state
@@ -61,8 +62,15 @@ def handle_command(cmd):
                 time.sleep(2)
         except KeyboardInterrupt:
             print("\n[!] Stopped spoofing.")
-    elif cmd == "scan":
-        scan_hosts() # Scan available hosts
+    elif cmd == "scanif":
+        scan_ifaces() # Scan available host
+    elif cmd.startswith("scan"):
+        args = shlex.split(cmd)
+        iface = None
+        for i, arg in enumerate(args):
+            if arg == "-iface" and i + 1 < len(args):
+                iface = args[i + 1]
+        scan_hosts(iface) # Scan available hosts
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode

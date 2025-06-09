@@ -1,16 +1,13 @@
-from scapy.all import arping, conf, get_if_addr, get_if_hwaddr
+from scapy.all import arping, conf, get_if_addr, get_if_hwaddr, get_if_list
 
 active_hosts = []
 
-def get_default_interface():
-    try:
-        #iface = conf.route.route("0.0.0.0")[0] #more general way but doesnt work on the lab environment properly
-        iface = "enp0s3" #has to be like this if we want to scan the lab environment...
-        #print("\033[93m[+] Automatically selected interface:\033[0m" + iface)
-        return iface
-    except Exception as e:
-        print("\033[31m[!] Could not determine default interface:\033[0m" + str(e))
-        return None
+
+def scan_ifaces():
+    interfaces = get_if_list()
+    print("\033[93m[*] Available network interfaces: \033[0m")
+    for iface in interfaces:
+        print(" - {}".format(iface))
 
 def get_own_network_info(interface):
     try:
@@ -22,11 +19,11 @@ def get_own_network_info(interface):
         return None, None
 
 
-def scan_hosts():
+def scan_hosts(iface):
     del active_hosts[:]
     print("\033[93m[*] Host scanning initiated...\033[0m")
     
-    iface = get_default_interface()
+    iface = iface
     if not iface:
         print("\033[31m[!] Cannot proceed without a valid network interface.\033[0m")
         return
