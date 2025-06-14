@@ -8,6 +8,7 @@ def scan_ifaces():
     print("\033[93m[*] Available network interfaces: \033[0m")
     for iface in interfaces:
         print(" - {}".format(iface))
+    return interfaces
 
 def get_own_network_info(interface):
     try:
@@ -35,7 +36,7 @@ def scan_hosts(iface):
 
     try:
         _, _, gateway_ip = conf.route.route("0.0.0.0")
-        gw_ans, _ = arping(gateway_ip, iface="enp0s8", timeout=2, verbose=False)
+        gw_ans, _ = arping(gateway_ip, iface=iface, timeout=2, verbose=False)
         if gw_ans:
             gateway_mac = gw_ans[0][1].hwsrc
             print("\n\033[96m[ Gateway Information ]\033[0m")
@@ -64,3 +65,5 @@ def scan_hosts(iface):
             print("IP: " + str(host['ip_addr']) + "| MAC: " + str(host['mac_addr']))
     except Exception as e:
         print("\033[31m[!] ARP scan failed: \033[0m" + str(e))
+    
+    return active_hosts
