@@ -5,6 +5,7 @@ import shlex
 from scan import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof, start_arp_poison
 from dns_spoofing import dns_spoof
+from dns import start_dns_poison
 import threading
 import scapy.all as sc
 import time
@@ -23,16 +24,17 @@ def print_title():
         
             """)
 
-    print(title)  # Green title
+    print(title)
     
 def print_commands():
 
     commands = """
         Available Commands:
-        start         - Start the spoofing process in default mode
+        scan_if       - Scan for available interfaces
+        scan_hosts    - Scan for available hosts using -if <interface>
         arppoison     - Start arp poison -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>
-        scan_if        - Scan for available interfaces
-        scan_hosts         - Scan for available hosts using -if <interface>
+        dnspoison -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
+        start         - Start the spoofing process in default mode
         silent        - Run in silent mode (minimal network disturbance)
         aggressive    - Run in "all out" mode (maximum disruption/logging)
         stop          - Stop all spoofing and restore network state
@@ -40,14 +42,30 @@ def print_commands():
         exit          - Quit the tool
             """
 
-    print(commands)  # Blue commands
+    print(commands)
 
 
 def handle_command(cmd):
     cmd = cmd.strip().lower()
-    print(cmd)
 
-    if cmd.startswith("start"):
+    if cmd == "scan_if":
+		# Scan available ifaces
+        scan_ifaces()
+    elif cmd.startswith("scan_hosts"):
+		# Scan available hosts on given iface
+        args = shlex.split(cmd)
+        iface = None
+        for i, arg in enumerate(args):
+            if arg == "-if" and i + 1 < len(args):
+                iface = args[i + 1]
+        scan_hosts(iface)
+    elif cmd.startswith("arppoison"):
+		#Basic arp poison
+        start_arp_poison(cmd)
+    elif cmd.startswith("dnspoison"):
+		#Basic arp poison
+		start_dns_poison(cmd)
+    elif cmd.startswith("start"):
         # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
         args = shlex.split(cmd)
         ip = mac = spoofed_ip = None
@@ -93,18 +111,6 @@ def handle_command(cmd):
         dns_thread = threading.Thread(target=dns_spoof_thread)
         dns_thread.daemon = True
         dns_thread.start()
-
-    elif cmd.startswith("arppoison"):
-        start_arp_poison(cmd) #Basic arp poison
-    elif cmd == "scan_if":
-        scan_ifaces() # Scan available ifaces
-    elif cmd.startswith("scan_hosts"):
-        args = shlex.split(cmd)
-        iface = None
-        for i, arg in enumerate(args):
-            if arg == "-if" and i + 1 < len(args):
-                iface = args[i + 1]
-        scan_hosts(iface) # Scan available hosts
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode

