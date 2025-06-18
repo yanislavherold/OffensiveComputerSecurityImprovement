@@ -9,7 +9,6 @@ import threading
 import scapy.all as sc
 import time
 import signal
-import sslstripping_script as sslstrip
 
 
 def print_title():
@@ -62,7 +61,7 @@ def handle_command(cmd):
 		#Basic arp poison
         start_arp_poison(cmd)
     elif cmd.startswith("dnspoison"):
-		#Basic arp poison
+		#Basic dns poison
         start_dns_poison(cmd)
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
@@ -71,17 +70,11 @@ def handle_command(cmd):
         print("[!] Starting in aggressive mode (heavy traffic injection)...")
         # Start spoofing with aggressive settings
     elif cmd == "stop":
-        sslstrip.stop_sslstrip()
-        sslstrip.stop_iptables_redirect()
-        sslstrip.stop_ip_forwarding()
         print("[*] Stopping attacks...")
         # Stop attacks 
     elif cmd == "help":
         print_commands()
     elif cmd == "exit":
-        sslstrip.stop_sslstrip()
-        sslstrip.stop_iptables_redirect()
-        sslstrip.stop_ip_forwarding()
         print("[*] Exiting...")
         exit(0)
     else:
