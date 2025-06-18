@@ -65,6 +65,13 @@ def handle_command(cmd):
     elif cmd.startswith("dnspoison"):
 		#Basic arp poison
         start_dns_poison(cmd)
+    elif cmd.startswith("sslstrip"):
+		#Basic arp poison
+        sslstrip.start_iptables_redirect()
+        sslstrip.start_sslstrip()
+
+        start_arp_thread(cmd)
+        start_arp_thread(cmd)
     elif cmd.startswith("start"):
         # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
         args = shlex.split(cmd)

