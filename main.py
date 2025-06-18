@@ -1,37 +1,42 @@
 import os
 import shlex
 from scan import scan_hosts, scan_ifaces
-from arp_spoofing import start_arp_poison
+from arp_spoofing import *
 from dns_spoofing import start_dns_poison
 import scapy.all as sc
-
-
+from sslstripping_script import *
+import time
 
 def print_title():
     os.system('cls' if os.name == 'nt' else 'clear') # clears the console when starting
 
-    title = ("""
-        
-                          Group 5                 
-              Default Project - Python + Scapy    
-               ARP + DNS Spoofing + SSLStrip      
-        
-            """)
+    def pause(text, delay=0.2):
+        print (text)
+        time.sleep(delay)
 
-    print(title)
+    print ("[:: GROUP 5 - DEFAULT PROJECT ::]\n")
+    pause("> Initializing modules...", 0.3)
+    pause("   ✔ ARP Poisoning", 0.2)
+    pause("   ✔ DNS Spoofing", 0.2)
+    pause("   ✔ SSL Stripping", 0.2)
+    pause("\n> Status: SYSTEMS ARMED", 0.2)
+    pause("> Happy hunting! :)", 0.1)
     
 def print_commands():
 
     commands = """
         Available Commands:
         scan_if       - Scan for available interfaces
-        scan_hosts    - Scan for available hosts using -if <interface>
-        arppoison     - Start arp poison -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>
-        dnspoison -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
-        start         - Start the spoofing process in default mode
+        scan_hosts    - Scan for available hosts on a given interface
+                        Params: -iface <interface>
+        arppoison     - Start arp poison 
+                        Params: -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>
+        dnspoison     - Start dns spoof attack on a chosen target and domain 
+                        Params: -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
+        sslstrip      - Start SSL stripping attack
+                        Params: -iface <interface> -tgtip <target_ip> -spip <spoofed_ip>
         silent        - Run in silent mode (minimal network disturbance)
         aggressive    - Run in "all out" mode (maximum disruption/logging)
-        stop          - Stop all spoofing and restore network state
         help          - Show this help message
         exit          - Quit the tool
             """
@@ -54,15 +59,15 @@ def handle_command(cmd):
                 iface = args[i + 1]
         scan_hosts(iface)
     elif cmd.startswith("arppoison"):
-		#Basic arp poison
+		# Basic arp poison
         start_arp_poison(cmd)
     elif cmd.startswith("dnspoison"):
-		#Basic dns poison
+		# Dns poison attack
         start_dns_poison(cmd)
     elif cmd.startswith("sslstrip"):
-		#Basic arp poison
-        sslstrip.start_iptables_redirect()
-        sslstrip.start_sslstrip()
+		# SSL stripping TODO
+        start_iptables_redirect()
+        start_sslstrip()
 
         start_arp_thread(cmd)
         start_arp_thread(cmd)
@@ -72,9 +77,6 @@ def handle_command(cmd):
     elif cmd == "aggressive":
         print("[!] Starting in aggressive mode (heavy traffic injection)...")
         # Start spoofing with aggressive settings
-    elif cmd == "stop":
-        print("[*] Stopping attacks...")
-        # Stop attacks 
     elif cmd == "help":
         print_commands()
     elif cmd == "exit":
@@ -91,7 +93,7 @@ def main():
             cmd = raw_input(">> ")
             handle_command(cmd)
         except KeyboardInterrupt:
-            print("\n[!] Interrupted. Type 'stop' to clean up or 'exit' to quit.")
+            print("\n[!] Interrupted. Type 'exit' to quit.")
 
 
 if __name__ == '__main__':
