@@ -4,7 +4,7 @@ from scan import scan_hosts, scan_ifaces
 from arp_spoofing import *
 from dns_spoofing import start_dns_poison
 import scapy.all as sc
-from sslstripping_script import *
+#from sslstripping_script import *
 import time
 
 def print_title():
@@ -64,13 +64,13 @@ def handle_command(cmd):
     elif cmd.startswith("dnspoison"):
 		# Dns poison attack
         start_dns_poison(cmd)
-    elif cmd.startswith("sslstrip"):
+    #elif cmd.startswith("sslstrip"):
 		# SSL stripping TODO
-        start_iptables_redirect()
-        start_sslstrip()
+        #start_iptables_redirect()
+        #start_sslstrip()
 
-        start_arp_thread(cmd)
-        start_arp_thread(cmd)
+        #start_arp_thread(cmd)
+        #start_arp_thread(cmd)
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode
