@@ -81,7 +81,6 @@ def handle_command(cmd):
             return
         print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
 
-        sslstrip.start_ip_forwarding()
         sslstrip.start_iptables_redirect()
         sslstrip.start_sslstrip()
 
@@ -120,7 +119,6 @@ def handle_command(cmd):
     elif cmd == "stop":
         sslstrip.stop_sslstrip()
         sslstrip.stop_iptables_redirect()
-        sslstrip.stop_ip_forwarding()
         print("[*] Stopping attacks...")
         # Stop attacks 
     elif cmd == "help":
@@ -128,7 +126,6 @@ def handle_command(cmd):
     elif cmd == "exit":
         sslstrip.stop_sslstrip()
         sslstrip.stop_iptables_redirect()
-        sslstrip.stop_ip_forwarding()
         print("[*] Exiting...")
         exit(0)
     else:
