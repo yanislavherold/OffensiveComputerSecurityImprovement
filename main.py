@@ -64,7 +64,7 @@ def handle_command(cmd):
         start_arp_poison(cmd)
     elif cmd.startswith("dnspoison"):
 		#Basic arp poison
-		start_dns_poison(cmd)
+        start_dns_poison(cmd)
     elif cmd.startswith("start"):
         # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
         args = shlex.split(cmd)
