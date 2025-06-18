@@ -4,13 +4,11 @@ import os
 import shlex
 from scan import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof, start_arp_poison
-from dns_spoofing import dns_spoof
-from dns import start_dns_poison
+from dns_spoofing import start_dns_poison
 import threading
 import scapy.all as sc
 import time
 import signal
-import sslstripping_script as sslstrip
 
 
 def print_title():
@@ -124,15 +122,11 @@ def handle_command(cmd):
         print("[!] Starting in aggressive mode (heavy traffic injection)...")
         # Start spoofing with aggressive settings
     elif cmd == "stop":
-        sslstrip.stop_sslstrip()
-        sslstrip.stop_iptables_redirect()
         print("[*] Stopping attacks...")
         # Stop attacks 
     elif cmd == "help":
         print_commands()
     elif cmd == "exit":
-        sslstrip.stop_sslstrip()
-        sslstrip.stop_iptables_redirect()
         print("[*] Exiting...")
         exit(0)
     else:
