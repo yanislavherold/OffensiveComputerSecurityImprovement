@@ -55,11 +55,11 @@ def start_arp_poison_ssl(cmd):
         return
     print("[*] Spoofing %s as %s ..." % (ip, iptospoof))
 
-    arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, iptospoof))
+    arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, iptospoof, 5))
     arp_thread.daemon = True
     arp_thread.start()
 
-    arp_thread = threading.Thread(target=arp_spoof_loop, args=(iptospoof, ip))
+    arp_thread = threading.Thread(target=arp_spoof_loop, args=(iptospoof, ip, 5))
     arp_thread.daemon = True
     arp_thread.start()
 
