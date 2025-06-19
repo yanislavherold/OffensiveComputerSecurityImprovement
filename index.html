@@ -1,29 +1,30 @@
 <html>
   <body>
-    <h1 id="greeting" style="display:none;">Hi <span id="user"></span></h1>
+    <div id="greeting" style="display:none;">
+      <h1>Hi <span id="user"></span></h1>
+    </div>
 
     <div id="loginForm">
       <h1>Test HTTPS server</h1>
-      <form onsubmit="return showGreeting(event)">
+      <form onsubmit="return showGreeting();">
         Username: <input name="username" id="username"><br>
         Password: <input name="password" type="password"><br>
         <input type="submit" value="login">
       </form>
     </div>
 
-    <script>
-      function showGreeting(event) {
-        event.preventDefault(); // Stop form from actually submitting
+    <script type="text/javascript">
+      function showGreeting() {
+        var username = document.getElementById("username").value;
 
-        const username = document.getElementById("username").value;
+        // Fallback for old IE: set innerHTML
+        document.getElementById("user").innerHTML = username ? username : "Guest";
 
-        // Show greeting and hide form
-        document.getElementById("user").textContent = username || "Guest";
         document.getElementById("greeting").style.display = "block";
         document.getElementById("loginForm").style.display = "none";
-        return false;
+
+        return false; // Prevent real form submission
       }
     </script>
   </body>
 </html>
-
