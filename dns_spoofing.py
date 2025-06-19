@@ -78,7 +78,7 @@ def arp_for_dns_spoof_loop(ip, mac, spoofed_ip):
     print("ARP Poison to %s complete" % ip)
 
 
-def start_dns_poison(cmd):
+def start_dns_spoofing(cmd):
     args = shlex.split(cmd)
     tgtip = spoofed_addr = dom = None
     for i, arg in enumerate(args):

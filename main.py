@@ -4,7 +4,7 @@ import os
 import shlex
 from scan import scan_hosts, scan_ifaces
 from arp_spoofing import arp_spoof, start_arp_poison
-from dns_spoofing import start_dns_poison
+from dns_spoofing import start_dns_spoofing
 import threading
 import scapy.all as sc
 import time
@@ -31,7 +31,7 @@ def print_commands():
         scan_if       - Scan for available interfaces
         scan_hosts    - Scan for available hosts using -if <interface>
         arppoison     - Start arp poison -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>
-        dnspoison -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
+        dnsspoof -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
         start         - Start the spoofing process in default mode
         silent        - Run in silent mode (minimal network disturbance)
         aggressive    - Run in "all out" mode (maximum disruption/logging)
@@ -60,9 +60,9 @@ def handle_command(cmd):
     elif cmd.startswith("arppoison"):
 		#Basic arp poison
         start_arp_poison(cmd)
-    elif cmd.startswith("dnspoison"):
-		#Basic dns poison
-        start_dns_poison(cmd)
+    elif cmd.startswith("dnsspoof"):
+		#Basic dns spoofing
+        start_dns_spoofing(cmd)
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode
