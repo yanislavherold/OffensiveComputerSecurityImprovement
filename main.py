@@ -16,9 +16,9 @@ def print_title():
 
     print ("[:: GROUP 5 - DEFAULT PROJECT ::]\n")
     pause("> Initializing modules...", 0.3)
-    pause("   ✔ ARP Poisoning", 0.2)
-    pause("   ✔ DNS Spoofing", 0.2)
-    pause("   ✔ SSL Stripping", 0.2)
+    pause("   + ARP Poisoning", 0.2)
+    pause("   + DNS Spoofing", 0.2)
+    pause("   + SSL Stripping", 0.2)
     pause("\n> Status: SYSTEMS ARMED", 0.2)
     pause("> Happy hunting! :)", 0.1)
     
@@ -28,15 +28,13 @@ def print_commands():
         Available Commands:
         scan_if       - Scan for available interfaces
         scan_hosts    - Scan for available hosts on a given interface
-                        Params: -iface <interface>
-        arppoison     - Start arp poison 
-                        Params: -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>
-        dnsspoof     - Start dns spoof attack on a chosen target and domain 
+                        Params: -if <interface>
+        arppoison     - Start arp poison, with optional aggresive or silent modes
+                        Params: -tgtip <target_ip> -spip <spoofed_ip> [-mode <mode>]
+        dnsspoof      - Start dns spoof attack on a chosen target and domain 
                         Params: -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
         sslstrip      - Start SSL stripping attack
                         Params: -iface <interface> -tgtip <target_ip> -spip <spoofed_ip>
-        silent        - Run in silent mode (minimal network disturbance)
-        aggressive    - Run in "all out" mode (maximum disruption/logging)
         help          - Show this help message
         exit          - Quit the tool
             """
@@ -64,12 +62,6 @@ def handle_command(cmd):
     elif cmd.startswith("dnsspoof"):
 		# Basic dns spoofing
         start_dns_spoofing(cmd)
-    elif cmd == "silent":
-        print("[*] Starting in silent mode (stealthy ARP poisoning and single domain spoof)...")
-        # Start spoofing in silent mode
-    elif cmd == "aggressive":
-        print("[!] Starting in aggressive mode (heavy traffic injection and all domains)...")
-        # Start spoofing with aggressive settings
     elif cmd == "help":
         print_commands()
     elif cmd == "exit":
