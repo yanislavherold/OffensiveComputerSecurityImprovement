@@ -65,12 +65,12 @@ def handle_command(cmd):
 		# Dns poison attack
         start_dns_poison(cmd)
     elif cmd.startswith("sslstrip"):
-		# SSL stripping TODO
+		# Start IP table
         start_iptables_redirect()
+        # Start SSL stripping proxy
         start_sslstrip()
-
-        start_arp_thread(cmd)
-        start_arp_thread(cmd)
+        # Start ARP poisoning for SSL stripping
+        start_arp_poison_ssl(cmd)
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning)...")
         # Start spoofing in silent mode
