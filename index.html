@@ -1,11 +1,29 @@
 <html>
-    <body>
-        <h1>Test HTTPS server</h1>
-        <form method="POST" action="/login">
-            Username: <input name="username"><br>
-            Password: <input name="password" type="password"><br>
-            <input type="submit" value="login">
-        </form>
-    </body>
+  <body>
+    <h1 id="greeting" style="display:none;">Hi <span id="user"></span></h1>
+
+    <div id="loginForm">
+      <h1>Test HTTPS server</h1>
+      <form onsubmit="return showGreeting(event)">
+        Username: <input name="username" id="username"><br>
+        Password: <input name="password" type="password"><br>
+        <input type="submit" value="login">
+      </form>
+    </div>
+
+    <script>
+      function showGreeting(event) {
+        event.preventDefault(); // Stop form from actually submitting
+
+        const username = document.getElementById("username").value;
+
+        // Show greeting and hide form
+        document.getElementById("user").textContent = username || "Guest";
+        document.getElementById("greeting").style.display = "block";
+        document.getElementById("loginForm").style.display = "none";
+        return false;
+      }
+    </script>
+  </body>
 </html>
 
