@@ -4,7 +4,7 @@ from scan import scan_hosts, scan_ifaces
 from arp_spoofing import *
 from dns_spoofing import start_dns_spoofing
 import scapy.all as sc
-#from sslstripping_script import *
+from sslstripping_script import *
 import time
 
 def print_title():
@@ -62,6 +62,13 @@ def handle_command(cmd):
     elif cmd.startswith("dnsspoof"):
 		# Basic dns spoofing
         start_dns_spoofing(cmd)
+    elif cmd.startswith("sslstrip"):
+		# Start IP table
+        start_iptables_redirect()
+        # Start SSL stripping proxy
+        start_sslstrip()
+        # Start ARP poisoning for SSL stripping
+        start_arp_poison_ssl(cmd)
     elif cmd == "help":
         print_commands()
     elif cmd == "exit":

