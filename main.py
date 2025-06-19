@@ -32,7 +32,7 @@ def print_commands():
         arppoison     - Start arp poison, with optional aggresive or silent modes
                         Params: -tgtip <target_ip> -spip <spoofed_ip> [-mode <mode>]
         dnsspoof      - Start dns spoof attack on a chosen target and domain 
-                        Params: -iface <iterface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
+                        Params: -iface <interface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
         sslstrip      - Start SSL stripping attack
                         Params: -iface <interface> -tgtip <target_ip> -spip <spoofed_ip>
         help          - Show this help message
