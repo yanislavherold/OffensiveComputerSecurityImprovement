@@ -4,7 +4,7 @@ from scan import scan_hosts, scan_ifaces
 from arp_spoofing import *
 from dns_spoofing import start_dns_spoofing
 import scapy.all as sc
-#from sslstripping_script import *
+from sslstripping_script import *
 import time
 
 def print_title():
