@@ -108,5 +108,3 @@ def start_dns_poison(cmd):
 # dnspoison -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
 
 
-
-

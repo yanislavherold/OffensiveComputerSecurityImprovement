@@ -2,6 +2,7 @@ import scapy.all as sc
 import shlex
 import threading
 import time
+import scan_hosts
 
 # ARP spoofing
 def arp_spoof (target_ip, target_mac, spoofed_ip):
@@ -52,5 +53,4 @@ def arp_limited_spoof_loop(ip, mac, spoofed_ip, count):
         time.sleep(1)
         
     print("ARP Poison to %s complete" % ip)
-
 
