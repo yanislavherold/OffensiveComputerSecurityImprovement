@@ -62,7 +62,7 @@ def handle_command(cmd):
 		# Basic arp poison
         start_arp_poison(cmd)
     elif cmd.startswith("dnsspoof"):
-		#Basic dns spoofing
+		# Basic dns spoofing
         start_dns_spoofing(cmd)
     elif cmd == "silent":
         print("[*] Starting in silent mode (stealthy ARP poisoning and single domain spoof)...")
