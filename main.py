@@ -28,11 +28,11 @@ def print_commands():
         Available Commands:
         scan_if       - Scan for available interfaces
         scan_hosts    - Scan for available hosts on a given interface
-                        Params: -if <interface>
+                        Params: -iface <interface>
         arppoison     - Start arp poison, with optional aggresive or silent modes
                         Params: -tgtip <target_ip> -spip <spoofed_ip> [-mode <mode>]
         dnsspoof      - Start dns spoof attack on a chosen target and domain 
-                        Params: -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
+                        Params: -iface <iterface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>
         sslstrip      - Start SSL stripping attack
                         Params: -iface <interface> -tgtip <target_ip> -spip <spoofed_ip>
         help          - Show this help message
@@ -53,7 +53,7 @@ def handle_command(cmd):
         args = shlex.split(cmd)
         iface = None
         for i, arg in enumerate(args):
-            if arg == "-if" and i + 1 < len(args):
+            if arg == "-iface" and i + 1 < len(args):
                 iface = args[i + 1]
         scan_hosts(iface)
     elif cmd.startswith("arppoison"):
