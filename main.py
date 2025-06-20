@@ -63,6 +63,10 @@ def handle_command(cmd):
 		# Basic dns spoofing
         start_dns_spoofing(cmd)
     elif cmd.startswith("sslstrip"):
+        # Clear any process on port 8080 in order to start the SSL proxy
+        stop_process8080()
+        # Flush the content of iptables
+        stop_iptables_redirect()
 		# Start IP table
         start_iptables_redirect()
         # Start SSL stripping proxy

@@ -14,6 +14,6 @@ def start_sslstrip():
     os.system("sudo python2.7 sslstripping_proxy.py &")
     print("[*] SSL strip proxy started.")
 
-def stop_sslstrip():
-    print("[*] Stopping custom SSL strip proxy...")
-    os.system("sudo pkill -f sslstripping_proxy.py")
+def stop_process8080():
+    print("[*] Clear port 8080 for SSL strip proxy...")
+    os.system("sudo fuser -k 8080/tcp")
