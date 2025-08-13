@@ -5,7 +5,8 @@ import urllib2
 
 class SSLStripProxy(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
-        url = 'https://localhost:443' + self.path
+        target_host = self.headers.get('Host')
+        url = 'https://{}{}'.format(target_host, self.path)
 
         print("Intercepted GET request %s" % (url))
 
@@ -30,7 +31,8 @@ class SSLStripProxy(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_error(502, 'Bad gateway: {}'.format(e))
 
     def do_POST(self):
-        url = 'https://localhost:443' + self.path
+        target_host = self.headers.get('Host')
+        url = 'https://{}{}'.format(target_host, self.path)
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
 
