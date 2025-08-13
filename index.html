@@ -1,10 +1,14 @@
 <html>
     <body>
         <h1>Test HTTPS server</h1>
-        <form method="POST" action="/login">
+        <form method="POST" action="https://testssl.local/login">
             Username: <input name="username"><br>
             Password: <input name="password" type="password"><br>
             <input type="submit" value="login">
         </form>
+
+        <p>
+            <a href="https://testssl.local/account">Go to your account (HTTPS)</a>
+        </p>
     </body>
 </html>
